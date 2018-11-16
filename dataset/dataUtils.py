@@ -5,9 +5,7 @@ Author LiHao
 Time 2018/10/31 10:46
 """
 import os
-import sys
 import platform
-import tensorflow as tf
 
 def __getCurrentPathAndOS__():
     """
@@ -21,6 +19,7 @@ def __getCurrentPathAndOS__():
         return "windows",current_path
     else:
         return "linux/mac",current_path
+
 def load_mnist():
     MNIST_PATH = "MNIST_DATA"
     os_name,current_path = __getCurrentPathAndOS__()

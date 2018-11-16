@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 """
+线性回归
 Author LiHao
 Time 2018/10/10 9:42
 """
