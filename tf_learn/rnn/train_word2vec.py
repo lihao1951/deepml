@@ -153,4 +153,39 @@ with graph.as_default():
                                          ,num_classes=vocabulary_size))
     # 定义优化器SGD
     optimizer = tf.train.GradientDescentOptimizer(1.0).minimize(loss)
+    norm = tf.sqrt(tf.reduce_sum(tf.square(embeddings),1,keep_dims=True))
+    normalized_embeddings = embeddings / norm
+    #选取得到的检验词  的词向量矩阵
+    valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings,valid_dataset)
+    #检验词的词向量矩阵与全部词向量进行乘积 得到检验词词与每个词的距离相似度矩阵
+    similarity = tf.matmul(valid_embeddings,normalized_embeddings,transpose_b=True)
+    # 初始化变量
+    init = tf.global_variables_initializer()
+    num_steps = 100001
+    with tf.Session(graph=graph) as session:
+        session.run(init)
+        print('Initialized')
+        average_loss = 0
+        for step in range(num_steps):
+            batch_inputs,batch_labels = generate_batch(batch_size,num_skips,skip_windows)
+            feed_dict = {train_inputs:batch_inputs,train_labels:batch_labels}
+            _,loss_val = session.run([optimizer,loss],feed_dict=feed_dict)
+            average_loss += loss_val
+            if step%2000 == 0:
+                if step>0:
+                    average_loss /= 2000
+                print('Average loss at step ',step," : ",average_loss)
+                average_loss = 0
+            if step%10000 ==0:
+                sim = similarity.eval()
+                for i in range(valid_size):
+                    valid_word = reverse_dictionary[valid_examples[i]]
+                    top_k = 8
+                    nearst = (-sim[i,:]).argsort()[1:top_k+1]#0是本身
+                    log_str = "Nearst to %s:" % valid_word
+                    for k in range(top_k):
+                        close_word = reverse_dictionary[nearst[k]]
+                        log_str = "%s %s," % (log_str,close_word)
+                    print(log_str)
+        final_embeddings = normalized_embeddings.eval()
 
