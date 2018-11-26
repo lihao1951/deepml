@@ -7,15 +7,25 @@ Time 2018/11/22 9:14
 """
 import os
 import sys
+import logging
 import json
+
 from pyspark import SparkContext
 from pyspark import SparkConf
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils,TopicAndPartition
 
+ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
+TOPICNAME = 'news'
+OFFSETFILE = TOPICNAME+'_offset'
+
+LOG_DIR = 'logs'
+LOG_FILENAME = TOPICNAME+'-kafka.log'
+LOGFILE_REALPATH = os.path.join(os.path.join(ROOT_PATH,LOG_DIR),LOG_FILENAME)
+LOG_FORMAT = '%(asctime)s - %(levelname)s - %(processName)s - %(message)s'
+
+logging.basicConfig(filename=LOGFILE_REALPATH,level=logging.INFO,format=LOG_FORMAT)
 offsetRanges = []
-TopicName = 'news'
-OFFSETFILE = TopicName+'_offset'
 
 def store_offset_ranges(rdd):
     global offsetRanges
@@ -28,13 +38,13 @@ def save_offset_ranges(rdd):
     :param rdd:
     :return:
     """
-    root_path = os.path.dirname(os.path.realpath(__file__))
-    record_path = os.path.join(root_path, OFFSETFILE)
+    record_path = os.path.join(ROOT_PATH, OFFSETFILE)
     data = dict()
     with open(record_path, "w") as f:
         for off in offsetRanges:
             data = {"topic": off.topic, "partition": off.partition, \
                     "fromOffset": off.fromOffset, "untilOffset": off.untilOffset}
+            logging.warning("save offset : %s" % off.untilOffset)
         f.write(json.dumps(data))
 
 def assemble_kafka_setup(broker_list):
@@ -56,8 +66,8 @@ def deal_data(rdd):
         sum += 1
         value = json.loads(d[-1])
         if value['_ch'] == 1:
-            print('News : %s' % value['title'])
-    print('Final deal data`sum is:',sum)
+            logging.info('News : %s' % value['title'])
+    logging.info('Final deal data`sum is: %s' % sum)
 
 def kafka_direct(broker_list="",topic_list=[],query_time=10):
     """
@@ -67,15 +77,14 @@ def kafka_direct(broker_list="",topic_list=[],query_time=10):
     :param query_time:
     :return:
     """
-    root_path = os.path.dirname(os.path.realpath(__file__))
-    record_path = os.path.join(root_path, OFFSETFILE)
+    record_path = os.path.join(ROOT_PATH, OFFSETFILE)
     from_offsets = {}
     if os.path.exists(record_path):
         with open(record_path,'r') as f:
             offset_data = json.loads(f.read())
         topic_partion = TopicAndPartition(offset_data["topic"], offset_data["partition"])
         from_offsets = {topic_partion: int(offset_data["untilOffset"])}  # 注意设置起始offset时的方法
-        print('start from offset:%s' % from_offsets)
+        logging.info('start from offset:%s' % from_offsets)
     kafkaParams = assemble_kafka_setup(broker_list)
     sc = SparkContext(master="local[2]",appName="KafkaDirectApp")
     ssc = StreamingContext(sc, query_time)
