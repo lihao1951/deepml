@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 """
+聚类模块--基于numpy&python
 Author LiHao
 Time 2018/11/26 9:21
 """
 import os
 import sys
 import numpy as np
-import math
 from sklearn.datasets import load_iris
 # 欧式距离函数
 from ml_learn.algorithm.distance import eculide
@@ -144,13 +144,20 @@ class KMeans(object):
         plt.xlabel("first dim")
         plt.ylabel("third dim")
         legends = []
+        cxs = []
+        cys = []
         for i in range(len(self._groups)):
             group = self._groups[i]
             members = group.members
             x = [member[0] for member in members]
             y = [member[2] for member in members]
             ax.scatter(x,y,marker='o')
+            cx = group.center[0]
+            cy = group.center[2]
+            cxs.append(cx)
+            cys.append(cy)
             legends.append(group.name)
+        plt.scatter(cxs, cys, marker='+', c='k')
         plt.legend(legends,loc="best")
         plt.show()
 
@@ -164,11 +171,12 @@ class MeanShift(object):
     """
     均值漂移聚类-基于密度
     """
-    def __init__(self,radius = 0.5,distance_between_groups = 2.5,max_members = math.inf):
+    def __init__(self,radius = 0.5,distance_between_groups = 2.5,bandwidth = 1,use_gk = True):
         self._radius = radius
-        self._max_members = max_members
         self._groups = []
+        self._bandwidth = bandwidth
         self._distance_between_groups = distance_between_groups
+        self._use_gk = use_gk #是否启用高斯核函数
 
     def _find_nearst_indexes(self,xi,XX):
         if XX.shape[0] == 0:
@@ -178,7 +186,14 @@ class MeanShift(object):
         return nearst_indexes
 
     def _compute_mean_vector(self,xi,datas):
-        return np.sum(datas-xi,axis=0)/datas.shape[0]
+        distances = datas-xi
+        if self._use_gk:
+            sum1 = self.gaussian_kernel(distances)
+            sum2 = sum1*(distances)
+            mean_vector = np.sum(sum2,axis=0)/np.sum(sum1,axis=0)
+        else:
+            mean_vector = np.sum(datas - xi, axis=0) / datas.shape[0]
+        return mean_vector
 
     def fit(self,X):
         XX = X
@@ -203,6 +218,8 @@ class MeanShift(object):
                     epos = np.abs(np.sum(mean_vector))
                     if epos < 0.00001 : break
                     if len(nearest_indexes) == 0 : break
+                # 有些博客说在一次漂移过程中 每个漂移点周边的点都需要纳入该类簇中，我觉得不妥，此处不是这样实现的，
+                # 只把稳定点周边的数据纳入该类簇中
                 group.members = nearest_datas.tolist()
                 group.center = xi
                 XX = np.delete(XX, nearest_indexes, axis=0)
@@ -231,18 +248,53 @@ class MeanShift(object):
         plt.xlabel("first dim")
         plt.ylabel("third dim")
         legends = []
+        cxs = []
+        cys = []
         for i in range(len(self._groups)):
             group = self._groups[i]
             members = group.members
             x = [member[0] for member in members]
             y = [member[2] for member in members]
+            cx = group.center[0]
+            cy = group.center[2]
+            cxs.append(cx)
+            cys.append(cy)
             ax.scatter(x, y, marker='o')
+            #ax.scatter(cx,cy,marker='+',c='r')
             legends.append(group.name)
+        plt.scatter(cxs,cys,marker='+',c='k')
         plt.legend(legends, loc="best")
         plt.show()
 
-def test_meanshift():
+    def gaussian_kernel(self,distances):
+        """
+        高斯核函数
+        :param distances:
+        :param h:
+        :return:
+        """
+        left = 1/(self._bandwidth*np.sqrt(2*np.pi))
+        right = np.exp(-np.power(distances,2)/(2*np.power(self._bandwidth,2)))
+        return left*right
+
+def test_meanshift(use_gk = True):
     data,t,tn=load_data()
-    ms = MeanShift(radius=0.66,distance_between_groups=1.4)
+    ms = MeanShift(radius=1.5,distance_between_groups=2.3,use_gk=use_gk)
     ms.fit(data)
     ms.plot_example()
+
+class Dbscan(object):
+    """
+    dbscan- Density-Based Spatial Clustering of Application with Noise
+    基于密度的噪声应用空间聚类
+    """
+    pass
+
+class Optics(object):
+    pass
+
+class Birch(object):
+    pass
+
+class GMM(object):
+    pass
