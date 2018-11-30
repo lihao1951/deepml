@@ -108,4 +108,3 @@ def recurrence_flatten(nested):
 def test_generator():
     nested = ['foo',['bar',['baz']]]
     print(list(recurrence_flatten(nested)))
-test_generator()

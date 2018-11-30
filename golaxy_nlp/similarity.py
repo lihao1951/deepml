@@ -206,6 +206,7 @@ def word2vec_transform_hierachical(w2v,sentence):
         except Exception as e:
             length -= 1
     v = window_sampling(vecs,window=3)
+    return v
 
 def word2vec_transform_maxpooling(w2v,sentence):
     size = w2v.layer1_size

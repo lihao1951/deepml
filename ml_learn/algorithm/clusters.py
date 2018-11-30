@@ -11,7 +11,8 @@ import math
 import numpy as np
 from sklearn.datasets import load_iris
 # 欧式距离函数
-from ml_learn.algorithm.distance import eculide
+from ml_learn.algorithm.distance import mydistance
+from sklearn.datasets import make_moons
 import matplotlib.pyplot as plt
 
 def load_data():
@@ -107,7 +108,7 @@ class KMeans(object):
 
     def _find_most_nearby_group(self,x):
         np_groups = np.array([group.center for group in self._groups])
-        distances = eculide(x,np_groups)
+        distances = mydistance(x,np_groups)
         most_similarity_index = np.argmin(distances).squeeze()
         self._groups[most_similarity_index].members = x
         return most_similarity_index
@@ -115,7 +116,12 @@ class KMeans(object):
     def _clear_groups_members(self):
         for group in self._groups:
             group.clear_members()
-
+    def group(self):
+        groups=[]
+        for g in self._groups:
+            for m in g.members:
+                groups.append(g.name)
+        return groups
     def fit(self,X):
         rows,cols = X.shape
         # 1.首先选取k个点为初始聚类中心点
@@ -151,10 +157,10 @@ class KMeans(object):
             group = self._groups[i]
             members = group.members
             x = [member[0] for member in members]
-            y = [member[2] for member in members]
+            y = [member[1] for member in members]
             ax.scatter(x,y,marker='o')
             cx = group.center[0]
-            cy = group.center[2]
+            cy = group.center[1]
             cxs.append(cx)
             cys.append(cy)
             legends.append(group.name)
@@ -163,9 +169,10 @@ class KMeans(object):
         plt.show()
 
 def test_kmeans():
+    X, Y = make_moons(n_samples=500)
     data,target,target_names = load_data()
-    kmeans = KMeans(k=3)
-    kmeans.fit(data)
+    kmeans = KMeans(k=2)
+    kmeans.fit(X)
     kmeans.plot_example()
 
 class MeanShift(object):
@@ -182,7 +189,7 @@ class MeanShift(object):
     def _find_nearst_indexes(self,xi,XX):
         if XX.shape[0] == 0:
             return []
-        distances= eculide(xi,XX)
+        distances= mydistance(xi,XX)
         nearst_indexes = np.where(distances <= self._distance_between_groups)[0].tolist()
         return nearst_indexes
 
@@ -229,7 +236,7 @@ class MeanShift(object):
             # 3.与历史类簇进行距离计算，若小于阈值则加入历史类簇，并更新类簇中心及成员
             for i in range(len(self._groups)):
                 h_group = self._groups[i]
-                distance = eculide(h_group.center,group.center)
+                distance = mydistance(h_group.center,group.center)
                 if distance <= self._distance_between_groups:
                     h_group.members = group.members
                     h_group.center = (h_group.center+group.center)/2
@@ -255,9 +262,9 @@ class MeanShift(object):
             group = self._groups[i]
             members = group.members
             x = [member[0] for member in members]
-            y = [member[2] for member in members]
+            y = [member[1] for member in members]
             cx = group.center[0]
-            cy = group.center[2]
+            cy = group.center[1]
             cxs.append(cx)
             cys.append(cy)
             ax.scatter(x, y, marker='o')
@@ -279,11 +286,10 @@ class MeanShift(object):
         return left*right
 
 def test_meanshift(use_gk = True):
-    data,t,tn=load_data()
-    ms = MeanShift(radius=1.5,distance_between_groups=2.3,use_gk=use_gk)
-    ms.fit(data)
+    X, Y = make_moons(n_samples=500)
+    ms = MeanShift(radius=0.051,distance_between_groups=1,use_gk=use_gk)
+    ms.fit(X)
     ms.plot_example()
-
 class KernelPoint(object):
     """
     核心对象类
@@ -313,7 +319,9 @@ class Dbscan(object):
         self._groups = [] #类簇集合
         self._kernel_points = [] #核心对象集合
         self._X = {} # 转化后的数据
-
+    @property
+    def group(self):
+        return self._groups
     def _find_nearbours(self,xi,XX):
         """
         查找满足邻域值大小的数据索引列表
@@ -323,7 +331,7 @@ class Dbscan(object):
         """
         if XX.shape[0] == 0:
             return []
-        distances= eculide(xi,XX)
+        distances= mydistance(xi,XX)
         nearst_indexes = np.where(distances <= self._epos)[0].tolist()
         return nearst_indexes
 
@@ -462,9 +470,9 @@ class Dbscan(object):
             group = self._groups[i]
             members = group.members
             x = [member[0] for member in members]
-            y = [member[2] for member in members]
+            y = [member[1] for member in members]
             cx = group.center[0]
-            cy = group.center[2]
+            cy = group.center[1]
             cxs.append(cx)
             cys.append(cy)
             ax.scatter(x, y, marker='o')
@@ -473,15 +481,121 @@ class Dbscan(object):
         plt.scatter(cxs,cys,marker='+',c='k')
         plt.legend(legends, loc="best")
         plt.show()
+
 def test_dbscan():
-    X=np.array([[1,2],[2,1],[2,3],[4,3],[5,8],[6,7],[6,9],[7,9],[9,5],[1,12],[3,12],[5,12],[3,3]])
-    data,t,tname = load_data()
-    dbscan = Dbscan(0.8,2)
-    dbscan.fit(data)
+    # X=np.array([[1,2],[2,1],[2,3],[4,3],[5,8],[6,7],[6,9],[7,9],[9,5],[1,12],[3,12],[5,12],[3,3]])
+    X,Y=make_moons(n_samples=500)
+    #data,t,tname = load_data()
+    dbscan = Dbscan(0.1,3)
+    dbscan.fit(X)
     dbscan.plot_example()
 
+class Point(object):
+    """
+    数据点类
+    """
+    def __init__(self,index,data,is_core = False,coredistance = math.inf,reachdistance = math.inf,belongCoreIndex = None):
+        self._index = index
+        self._data = data
+        self._core_distance = coredistance
+        self._reach_distance = reachdistance
+        self._belong_core_index = belongCoreIndex
+        self._is_core = is_core
+        self._members = []
+
+    @property
+    def members(self):
+        return self._members
+    @members.setter
+    def members(self,b):
+        if isinstance(b,int):
+            self._members.append(b)
+        if isinstance(b,list):
+            self._members.extend(b)
+    @property
+    def core(self):
+        return self._is_core
+    @core.setter
+    def core(self,c):
+        if isinstance(c,bool):
+            self._is_core = c
+    @property
+    def index(self):
+        return self._index
+    @index.setter
+    def index(self,i):
+        self._index = i
+    @property
+    def data(self):
+        return self._data
+    @data.setter
+    def data(self,d):
+        self._data = d
+    @property
+    def coredistance(self):
+        return self._core_distance
+    @coredistance.setter
+    def coredistance(self,c):
+        self._core_distance = c
+    @property
+    def reachdistance(self):
+        return self._reach_distance
+    @reachdistance.setter
+    def reachdistance(self,r):
+        self._reach_distance = r
+    @property
+    def belongcoreindex(self):
+        return self._belong_core_index
+    @belongcoreindex.setter
+    def belongcoreindex(self,b):
+        self._belong_core_index = b
+
 class Optics(object):
-    pass
+    def __init__(self,epsilon=0.5,minpts=3):
+        self._epsilon = epsilon
+        self._minpts = minpts
+        self._X = {}
+        self._groups = []
+        self._sort_ponits = []
+        self._kernel_points_index = set()
+        self._result_points = []
+        self._is_visited = {}
+
+    def _init_data_points(self,X):
+        rows, _ = X.shape
+        for i in range(rows):
+            xi = X[i]
+            distances = mydistance(xi,X)
+            dis_num = np.where(distances<=self._epsilon)[0].shape[0]
+            include_points_index = distances.argsort()[1:dis_num].tolist()
+            #若是核心点
+            if dis_num >= self._minpts:
+                point = Point(index=i,data=xi,is_core=True,belongCoreIndex=i)
+                point.members = include_points_index
+                cored = distances[include_points_index[1]]
+                point.coredistance = cored
+                self._kernel_points_index.add(i) #加入核心点集合
+            else:
+                point = Point(index=i,data=xi,is_core=False)
+            self._X[i] = point
+            self._is_visited[i] = False
+        return rows
+
+    def fit(self,X):
+        rows = self._init_data_points(X)
+        while(len(self._X)!=0):
+
+            i = self._kernel_points_index.pop()
+            kernel_point = self._X.pop(i)
+            self._result_points.append(kernel_point)
+            self._is_visited[i] = True
+            members_list = kernel_point.members
+            for mem in members_list:
+                self._sort_ponits.append(mem)
+                self._is_visited[mem] = True
+                self._X.pop(mem)
+            while(len(self._sort_ponits)!=0):
+                pass
 
 class Birch(object):
     pass
@@ -491,3 +605,124 @@ class GMM(object):
 
 class Spectral(object):
     pass
+
+def plot_sklearn_example(data,labels,name="Birch"):
+    cluster_index = {}
+    for i in range(labels.shape[0]):
+        if cluster_index.__contains__(labels[i]):
+            cluster_index[labels[i]].append(i)
+        else:
+            cluster_index[labels[i]] = [i]
+    figure = plt.figure()
+    ax = figure.add_subplot(111)
+    ax.set_title(name+" iris examples")
+    G = 'G'
+    legend_group = []
+    for key, values in cluster_index.items():
+        x = []
+        y = []
+        legend_group.append(G+str(key))
+        for value in values:
+            x.append(data[value][0])
+            y.append(data[value][1])
+        ax.scatter(x, y, marker='o')
+    ax.legend(legend_group,loc="best")
+    plt.show()
+
+def test_birch():
+    """
+    brich适合低维度的数据集/不适合维度大于20
+    :return:
+    """
+    moon = make_moons(n_samples=200)[0]
+    from sklearn.cluster import Birch
+    b = Birch(threshold=1,n_clusters=None)
+    b.fit(moon)
+    # print(b.labels_)
+    labels = b.labels_
+    plot_sklearn_example(moon,labels)
+
+def test_spectrcal():
+    """
+    谱聚类测试
+    :return:
+    """
+    from sklearn.cluster import SpectralClustering
+
+    moon = make_moons(n_samples=200)[0]
+    s = SpectralClustering(n_clusters=2)
+    s.fit(moon)
+    labels = s.labels_
+    plot_sklearn_example(moon,labels,name="Spectral")
+def test_AffinityPropagation():
+    """
+    AP聚类算法是基于数据点间的"信息传递"的一种聚类算法
+    :return: 
+    """
+    from sklearn.cluster import AffinityPropagation
+    ap = AffinityPropagation(damping=0.81,convergence_iter=2)
+    moon = make_moons(n_samples=200)[0]
+    ap.fit(moon)
+    labels = ap.labels_
+    plot_sklearn_example(moon,labels,name="AP")
+
+class SinglePass(object):
+    def __init__(self,thresh=1):
+        self._X = None
+        self._groups = []
+        self._thresh = thresh
+
+    def _find_most_near_index(self):
+        pass
+
+    def fit(self,X):
+        self._X = X
+        rows,cols = X.shape
+        for row in range(rows):
+            xi = X[row]
+            final_group = None
+            for group in self._groups:
+                d = mydistance(xi,group.center,isEculidean=False)
+                if d <= self._thresh:
+                    final_group = group
+            if final_group == None:
+                g = Group()
+                g.name = len(self._groups) +1
+                g.members = xi
+                g.center = xi
+                self._groups.append(g)
+            else:
+                g.members = xi
+
+    def plot_example(self):
+        figure = plt.figure()
+        ax = figure.add_subplot(111)
+        ax.set_title("SinglePass Moon Example")
+        plt.xlabel("first dim")
+        plt.ylabel("third dim")
+        legends = []
+        cxs = []
+        cys = []
+        for i in range(len(self._groups)):
+            group = self._groups[i]
+            members = group.members
+            x = [member[0] for member in members]
+            y = [member[2] for member in members]
+            ax.scatter(x,y,marker='o')
+            cx = group.center[0]
+            cy = group.center[2]
+            cxs.append(cx)
+            cys.append(cy)
+            legends.append(group.name)
+        plt.scatter(cxs, cys, marker='+', c='k')
+        plt.legend(legends,loc="best")
+        plt.show()
+
+
+def test_singlePass():
+    moon = make_moons(n_samples=200)[0]
+    data,t,tn = load_data()
+    sg = SinglePass(thresh=0.01)
+    sg.fit(data)
+    sg.plot_example()
+test_singlePass()
