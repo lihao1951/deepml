@@ -718,11 +718,9 @@ class SinglePass(object):
         plt.legend(legends,loc="best")
         plt.show()
 
-
 def test_singlePass():
     moon = make_moons(n_samples=200)[0]
     data,t,tn = load_data()
     sg = SinglePass(thresh=0.01)
     sg.fit(data)
     sg.plot_example()
-test_singlePass()
