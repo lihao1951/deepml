@@ -14,7 +14,7 @@ from golaxy_nlp.regex import is_num
 from golaxy_nlp.regex import remove_illegal_mark
 
 # 加载自定义词典
-#jieba.load_userdict('./config/newdict.txt')
+jieba.load_userdict('./config/newdict.txt')
 
 def _get_os_name():
     """
@@ -59,7 +59,7 @@ def _close_mongo(client):
     if client is not None:
         client.close()
 
-def _build_mongo_connect(ip="10.18.17.209",port=27017):
+def _build_mongo_connect(ip="10.170.130.133",port=27017):
     """
     连接mongo，返回客户端
     :param ip:
@@ -94,7 +94,7 @@ def validation_data(tfidf=False,count = 0):
     :return:
     """
     # 若存在数据
-    if os.path.exists(FILE_NAME+"5"):
+    if os.path.exists(FILE_NAME):
         r = []
         with open(FILE_NAME,encoding="utf-8") as f:
             count = 1
@@ -113,7 +113,7 @@ def validation_data(tfidf=False,count = 0):
     else:
         client = _build_mongo_connect()
         db = client.get_database("yq")
-        col = db.get_collection("news_train_data")
+        col = db.get_collection("validation_cluster_data")
         skips = count
         datas = col.find().batch_size(200).skip(skips)
         # r为 [[],[],...,[]] 类型的数据
@@ -123,10 +123,11 @@ def validation_data(tfidf=False,count = 0):
                 # 清洗数据并分词
                 count += 1
                 if data['content'] is None:continue
+                topic = data['topic']
                 content = remove_illegal_mark(data['content'])
                 clear_content = _seg_sentence(content)
                 print(count,'\t')
-                w.write(' '.join(clear_content)+"\n")
+                w.write(topic+'\t'+' '.join(clear_content)+"\n")
                 r.append(clear_content)
         _close_mongo(client)
         return r

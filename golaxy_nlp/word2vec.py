@@ -27,9 +27,10 @@ def model_train_word2vec():
     :return:
     """
     #sentence=validation_data()
-    model = gensim.models.Word2Vec(sentences=LineSentence("./data/news_train.txt"),size=300,window=5,min_count=5,
-                                   max_vocab_size=100000,workers=multiprocessing.cpu_count(),sg=1,negative=10,iter=15)
-    model.save('./model/word2vec')
+    model = gensim.models.Word2Vec(sentences=LineSentence("./data/c.txt"),size=100,window=5,min_count=5,
+                                   max_vocab_size=50000,workers=multiprocessing.cpu_count(),sg=1,negative=5,iter=30)
+    model.save('./model/cc')
+    model.n_similarity()
 
 def save_word2vec():
     """
