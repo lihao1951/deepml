@@ -3,11 +3,16 @@
 """
 @author LiHao
 """
-import os
-import sys
 import math
 
-def guiyi(T,X,P=200):
+def guiyi(T=0.05,X=500,P=200):
+    """
+    通过系数1 调节不同范围的归一化方法
+    :param T: 系数1：
+    :param X: 具体需要归一化的值
+    :param P: 系数2：最好保持不变
+    :return:
+    """
     return P*math.atan(T*math.sqrt(X))/math.pi
 
 def chuanbo(T,comment_num,passport_num):
@@ -26,8 +31,3 @@ def fengfu(T,con_len,is_pic,isvedio,ismuic):
 def haoping(T,sent,bi):
     X=sent*3*3*(bi+0.01)
     return guiyi(T,X)
-
-print("chuanbo ",chuanbo(0.2,200,200))
-print("quanwei ",xianzhu(0.15,3,1,1,2,1,1,1))
-print("haoping ",haoping(0.2,90,0.6))
-print("fengfu ",fengfu(0.35,1000,1,0,0))

@@ -92,6 +92,7 @@ def flatten(nested):
     for sublist in nested:
         for ele in sublist:
             yield ele
+
 def recurrence_flatten(nested):
     """
     递归生成器
