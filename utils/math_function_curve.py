@@ -26,5 +26,4 @@ def gradient_3d():
     #ax.contourf(X, Y, Z, zdir='z', offset=-2)
     ax.set_zlim(-2, 2)
     plt.show()
-
 gradient_3d()
