@@ -5,8 +5,6 @@
 Author LiHao
 Time 2018/10/6 15:32
 """
-import os
-import sys
 import numpy as np
 import tensorflow as tf
 #设置数据流图

@@ -171,21 +171,3 @@ def clean_sentence(sentence):
     content = remove_illegal_mark(sentence)
     clear_content = _seg_sentence(content)
     return  ' '.join(clear_content)
-
-if __name__ == '__main__':
-    client = _build_mongo_connect()
-    database = client.get_database('yq')
-    table_train = database.get_collection('news_train_data1')
-    table_test = database.get_collection('news_train_data')
-    with open('D:\\train','a',encoding='utf-8') as f:
-        train_cursor = table_train.find()
-        for train_data in train_cursor:
-            title = train_data['title']
-            content = train_data['content']
-            f.write('{}\t\t{}\n'.format(title,content))
-    with open('D:\\test','a',encoding='utf-8') as f:
-        test_cursor = table_test.find()
-        for test_data in test_cursor:
-            title = test_data['title']
-            content = test_data['content']
-            f.write('{}\t\t{}\n'.format(title, content))
