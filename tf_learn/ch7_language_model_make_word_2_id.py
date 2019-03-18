@@ -9,6 +9,9 @@ import codecs
 PTB_TRAIN_INPUT = 'E:\\work\\golaxy_job\\golaxy_job\\python_job\\pycharm\\deepml\\' \
            'tf_learn\\dataset\\simple-examples\\data\\ptb.train.txt'
 PTB_TRAIN = 'ptb.train'
+PTB_VALID_INPUT = 'E:\\work\\golaxy_job\\golaxy_job\\python_job\\pycharm\\deepml\\' \
+           'tf_learn\\dataset\\simple-examples\\data\\ptb.valid.txt'
+PTB_VALID = 'ptb.valid'
 PTB_TEST_INPUT = 'E:\\work\\golaxy_job\\golaxy_job\\python_job\\pycharm\\deepml\\' \
            'tf_learn\\dataset\\simple-examples\\data\\ptb.test.txt'
 PTB_TEST = 'ptb.test'
@@ -28,5 +31,4 @@ def deal(in_file,out_file):
         fout.write(out_line)
     fin.close()
     fout.close()
-deal(PTB_TRAIN_INPUT,PTB_TRAIN)
-deal(PTB_TEST_INPUT,PTB_TEST)
+deal(PTB_VALID_INPUT,PTB_VALID)
