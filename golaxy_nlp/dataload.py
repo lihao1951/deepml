@@ -9,12 +9,22 @@ import sys
 import re
 import pymongo
 import jieba
+from jieba.analyse import tfidf
+from jieba import analyse
 import platform
 from golaxy_nlp.regex import is_num
 from golaxy_nlp.regex import remove_illegal_mark
 
 # 加载自定义词典
-jieba.load_userdict('./config/newdict.txt')
+jieba.load_userdict('E:/work/golaxy_job/golaxy_job/python_job/pycharm/deepml/golaxy_nlp/config/newdict.txt')
+# jieba.analyse.set_idf_path("E:/work/golaxy_job/golaxy_job/python_job/pycharm/deepml/golaxy_nlp/files/idf.utf8")
+# jieba.analyse.set_stop_words("E:/work/golaxy_job/golaxy_job/python_job/pycharm/deepml/golaxy_nlp/config/stopwords.txt")
+def get_key_word(sentence,topk=20,allowPOS = ['ns', 'n', 'vn','nr']):
+    words = analyse.extract_tags(sentence,topk,allowPOS=allowPOS)
+    w = []
+    for word in words:
+        w.append(word)
+    return ' '.join(w)
 
 def _get_os_name():
     """
@@ -86,6 +96,9 @@ def _seg_sentence(sentence):
         if word not in stopwords:
             outstr += word + ' '
     return outstr.strip().split(' ')
+
+def seg(sentence):
+    return _seg_sentence(sentence)
 
 def validation_data(tfidf=False,count = 0):
     FILE_NAME = './data/all_news.txt'
@@ -171,3 +184,4 @@ def clean_sentence(sentence):
     content = remove_illegal_mark(sentence)
     clear_content = _seg_sentence(content)
     return  ' '.join(clear_content)
+

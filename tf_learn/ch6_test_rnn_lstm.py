@@ -10,6 +10,8 @@ import tensorflow as tf
 import matplotlib
 # matplotlib.use('Agg')
 from matplotlib import pyplot as plt
+from tensorflow.python.ops.rnn import dynamic_rnn
+
 HIDDEN_SIZE=30
 NUM_LAYERS=2
 TIMESTEPS=10
@@ -29,7 +31,7 @@ def generate_data(seq):
 
 def lstm_model(X,y,is_training):
     cell = tf.nn.rnn_cell.MultiRNNCell([tf.nn.rnn_cell.LSTMCell(HIDDEN_SIZE) for _ in range(NUM_LAYERS)])
-    outputs,_ = tf.nn.dynamic_rnn(cell,X,dtype=tf.float32)
+    outputs,_ = dynamic_rnn(cell,X,dtype=tf.float32)
     output = outputs[:,-1,:]
     with tf.variable_scope("model"):
         fc_w = tf.get_variable(name='fc_w',shape=[HIDDEN_SIZE,1],dtype=tf.float32,
@@ -80,6 +82,7 @@ def run_eval(sess,test_x,test_y):
 test_start = (TRARNING_EXAMPLES+TRARNING_STEPS)*SAMPLES_GAP
 test_end = test_start+(TESTING_EXAMPLES+TIMESTEPS)*SAMPLES_GAP
 train_X,train_y = generate_data(np.sin(np.linspace(0,test_start,TRARNING_EXAMPLES+TIMESTEPS,dtype=np.float32)))
+print(train_X.shape,train_y.shape)
 test_X,test_y = generate_data(np.sin(np.linspace(test_start,test_end,TESTING_EXAMPLES+TIMESTEPS,dtype=np.float32)))
 with tf.Session() as sess:
     train(sess,train_X,train_y)

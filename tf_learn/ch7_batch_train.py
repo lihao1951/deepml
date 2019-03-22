@@ -22,7 +22,6 @@ LSTM_KEEP_PROB = 0.9
 EMBEDDING_KEEP_PROB = 0.9
 MAX_GARD_NORM = 5
 SHARE_EMB_AND_SOFTMAX = True
-EMB_SIZE = 100
 
 def read_data(file_path):
     with open(file_path,'r') as fin:
@@ -69,6 +68,7 @@ class PTBModel(object):
         grads,_ = tf.clip_by_global_norm(tf.gradients(self.cost,trainable_variables),MAX_GARD_NORM)
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=1.0)
         self.train_op = optimizer.apply_gradients(zip(grads,trainable_variables))
+
 def run_epoch(session,model,batches,train_op,output_log,step):
     total_costs = 0.0
     iters = 0
