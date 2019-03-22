@@ -39,6 +39,21 @@ def read_vocab():
         vocab['<eos>'] = len(vocab)
         vocab['<sos>'] = len(vocab)
     return vocab
+
+def get_word_list(vocab,cont,topK=20):
+    keywords = get_key_word(cont, topk=topK).split()
+    word_list = []
+    for word in keywords:
+        if word in vocab:
+            word_list.append(vocab[word])
+        else:
+            word_list.append(vocab['<pad>'])
+    if len(word_list) < 20:
+        for i in range(20 - len(word_list)):
+            word_list.append(vocab['<pad>'])
+    word_list = [str(w) for w in word_list]
+    return word_list
+
 def change_2_id_list(filename):
     vocab = read_vocab()
     wout = open(filename+'_sig', 'a', encoding='utf-8')
@@ -52,17 +67,7 @@ def change_2_id_list(filename):
             except:
                 line = fin.readline()
                 continue
-            keywords = get_key_word(cont,topk=20).split()
-            word_list = []
-            for word in keywords:
-                if word in vocab:
-                    word_list.append(vocab[word])
-                else:
-                    word_list.append(vocab['<pad>'])
-            if len(word_list) < 20:
-                for i in range(20-len(word_list)):
-                    word_list.append(vocab['<pad>'])
-            word_list = [str(w) for w in word_list]
+            word_list = get_word_list(vocab,cont)
             if float(value)>=0.6:
                 value = 1
             else:

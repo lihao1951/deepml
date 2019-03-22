@@ -84,7 +84,7 @@ def rnn_get_loss_train_op(if_pre = True):
             loss = tf.sqrt(tf.losses.mean_squared_error(labels=y_input, predictions=y_pre))
             tf.summary.scalar('loss', loss)
         else:
-            y_pre = tf.nn.sigmoid(tf.add(tf.matmul(final_output, fc_w), fc_b))
+            y_pre = tf.nn.sigmoid(tf.add(tf.matmul(final_output, fc_w), fc_b),name='y_pre')
             loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_input,logits=y_pre))
             one = tf.ones_like(y_pre)
             zero = tf.zeros_like(y_pre)
@@ -139,6 +139,7 @@ def rnn_train(if_pre):
                             train_accuracy = sess.run(accuracy, feed_dict={X_input: train_X, y_input: train_y})
                             print("epoch:{},iteration:{},train loss:{},train accuracy:{}".format(i + 1, step, train_loss,train_accuracy))
                     train_loss_sum += train_loss
+                    break
                 except Exception as e:
                     go_on = False
                     print(e)
