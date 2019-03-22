@@ -17,8 +17,7 @@ from golaxy_nlp.regex import remove_illegal_mark
 
 # 加载自定义词典
 jieba.load_userdict('E:/work/golaxy_job/golaxy_job/python_job/pycharm/deepml/golaxy_nlp/config/newdict.txt')
-# jieba.analyse.set_idf_path("E:/work/golaxy_job/golaxy_job/python_job/pycharm/deepml/golaxy_nlp/files/idf.utf8")
-# jieba.analyse.set_stop_words("E:/work/golaxy_job/golaxy_job/python_job/pycharm/deepml/golaxy_nlp/config/stopwords.txt")
+
 def get_key_word(sentence,topk=20,allowPOS = ['ns', 'n', 'vn','nr']):
     words = analyse.extract_tags(sentence,topk,allowPOS=allowPOS)
     w = []
