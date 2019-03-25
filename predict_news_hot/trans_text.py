@@ -11,6 +11,47 @@ import operator
 TRAIN = 'mini_train'
 VALID = 'mini_valid'
 TEST = 'mini_test'
+
+def merge():
+    init = open('mini_train_sig_clean', 'r')
+    zero = []
+    one = []
+    lines = init.readlines()
+    for line in lines:
+        label = str(line.split('-')[0])
+        if label=='1':
+            one.append(line)
+        else:
+            zero.append(line)
+    roll = True
+    merge = open('mini_train_sig_merge','a')
+    while len(zero)!=0 and len(one)!=0:
+        if roll:
+            merge.write(zero.pop(-1))
+        else:
+            merge.write(one.pop(-1))
+        roll = not roll
+merge()
+
+def clean():
+    ALL=15000
+    all_1 = 0
+    all_0 = 0
+    w = open('mini_train_sig_clean','a')
+    with open('mini_train_sig','r') as f:
+        line = f.readline()
+        while line:
+            label = str(line.split('-')[0])
+            if label=='1':
+                if all_1<=ALL:
+                    w.write(line)
+                    all_1+=1
+            else:
+                if all_0<=ALL:
+                    w.write(line)
+                    all_0 += 1
+            line = f.readline()
+    w.close()
 def make_vocab(filename):
     vocab = {}
     with open(filename,'r',encoding='utf-8') as fin:
@@ -68,7 +109,9 @@ def change_2_id_list(filename):
                 line = fin.readline()
                 continue
             word_list = get_word_list(vocab,cont)
-            if float(value)>=0.6:
+            if float(value)>=0.7:
+                value = 2
+            elif float(value)>=0.3:
                 value = 1
             else:
                 value = 0
