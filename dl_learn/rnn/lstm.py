@@ -23,7 +23,7 @@ def __get_toutiao_news():
         lines = fp.readlines()
         news_list = []
         for line in lines:
-            line = line.replace("\n","")
+            line = line.strip()
             news_data = line.split('_!_')
             news_id = news_data[0]
             news_label = int(news_data[1])

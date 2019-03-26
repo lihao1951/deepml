@@ -9,11 +9,11 @@ import codecs
 import numpy as np
 from tensorflow.python.ops.rnn import dynamic_rnn
 
-TRAIN_PATH = 'mini_train_sig_merge'
+TRAIN_PATH = 'mini_train_sig'
 VALID_PATH = 'mini_valid_sig'
 TEST_PATH = 'mini_test_sig'
 NUM_STEPS = 20
-BATCH_SIZE = 128
+BATCH_SIZE = 100
 HIDDEN_SIZE = 80
 NUM_LAYERS = 2
 EMBEDDING_OUT_PROB = 0.7
@@ -74,7 +74,9 @@ def cnn_get_loss_train_op():
         X_input = tf.placeholder(dtype=tf.int32, shape=[None, NUM_STEPS], name='X_input')
         y_input = tf.placeholder(dtype=tf.int32, shape=[None, 1], name='y_input')
         y_input_one_hot = tf.reshape(tf.one_hot(y_input,depth=2,dtype=tf.float32,axis=1),shape=[-1,2],name='y_input_one_hot')
-        embedding = tf.get_variable(name='embedding_layer', shape=[len(VOCAB_DICT), HIDDEN_SIZE], dtype=tf.float32)
+        embedding = tf.get_variable(name='embedding_layer', shape=[len(VOCAB_DICT), HIDDEN_SIZE],
+                                    initializer=tf.random_uniform_initializer(minval=-1.0,maxval=1.0),
+                                    dtype=tf.float32)
         tf.summary.histogram('embedding',embedding)
         X_embedding = tf.reshape(tf.nn.embedding_lookup(embedding,X_input),shape=[-1,NUM_STEPS,HIDDEN_SIZE,1]
                                  ,name='X_embedding')
@@ -267,13 +269,12 @@ def cnn_train():
                     train_x,train_y = next(train_data)
                     iters += 1
                     all_steps += 1
-                    train_loss,train_accuracy,rs = sess.run([loss,accuracy,merged],feed_dict={X_input:train_x,y_input:train_y})
+                    _,train_loss,train_accuracy = sess.run([train_op,loss,accuracy],feed_dict={X_input:train_x,y_input:train_y})
                     all_train_loss += train_loss
-                    if all_steps % 50 == 0:
-                        writer.add_summary(rs,global_step=all_steps)
                     all_train_accuracy += train_accuracy
-                    if iters % 20 == 0:
-                        print(compute_y(train_y))
+                    if iters % 10 == 0:
+                        rs = sess.run( merged, feed_dict={X_input: train_x, y_input: train_y})
+                        writer.add_summary(rs, global_step=all_steps)
                         print('epoch:{},iter:{},train loss:{},train accuracy:{}'.format(epoch,iters,train_loss,train_accuracy))
                 except Exception as e:
                     go_on = False

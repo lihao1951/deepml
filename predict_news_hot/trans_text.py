@@ -31,7 +31,7 @@ def merge():
         else:
             merge.write(one.pop(-1))
         roll = not roll
-merge()
+
 
 def clean():
     ALL=15000
@@ -52,6 +52,8 @@ def clean():
                     all_0 += 1
             line = f.readline()
     w.close()
+
+
 def make_vocab(filename):
     vocab = {}
     with open(filename,'r',encoding='utf-8') as fin:
@@ -71,6 +73,7 @@ def make_vocab(filename):
         wout.write(word[0]+'\n')
     wout.close()
 
+
 def read_vocab():
     vocab = {}
     with open('vocab', 'r', encoding='utf-8') as fin:
@@ -80,6 +83,7 @@ def read_vocab():
         vocab['<eos>'] = len(vocab)
         vocab['<sos>'] = len(vocab)
     return vocab
+
 
 def get_word_list(vocab,cont,topK=20):
     keywords = get_key_word(cont, topk=topK).split()

@@ -12,7 +12,7 @@ from predict_news_hot.trans_text import get_word_list,read_vocab
 
 app = Flask(__name__)
 topK = 20
-MODEL_NAME = './model/'
+MODEL_NAME = './model/cnn/'
 
 
 def load_saver(model_name):
@@ -37,6 +37,7 @@ def get_tf_session(model_name):
 
 tf_session,X_input,y_input,y_pre = get_tf_session(MODEL_NAME)
 vocab = read_vocab()
+
 
 @app.route('/')
 def demo():
