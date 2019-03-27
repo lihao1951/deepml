@@ -76,7 +76,9 @@ def make_vocab(filename):
 
 def read_vocab():
     vocab = {}
-    with open('vocab', 'r', encoding='utf-8') as fin:
+    import os
+    vocab_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'vocab')
+    with open(vocab_path, 'r', encoding='utf-8') as fin:
         for num,word in enumerate(fin.readlines()):
             vocab[word.strip()] = num
         vocab['<pad>'] = len(vocab)
