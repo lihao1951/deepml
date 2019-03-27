@@ -24,7 +24,7 @@ def clean():
             label  = data[1]
             label_name = data[2]
             title = data[3]
-            title_seg = seg(title)
+            title_seg = ' '.join(seg(title))
             keywords = data[4]
             if keywords is '':
                 keywords = get_key_word(title)
@@ -65,10 +65,26 @@ def turn_toutiao_to_numpy():
         return np.array(X,dtype=np.int32),np.array(y,dtype=np.int32)
 
 
-def split_toutiao_to_train_test():
+def make_one_hot(y):
+    rows,cols = y.shape
+    label = set()
+    for i in range(rows):
+        label.add(y[i,-1])
+    label=list(label)
+    num_classes = len(label)
+    one_hot = np.zeros(shape=(rows,num_classes),dtype=np.float32)
+    for i in range(rows):
+        ix = label.index(y[i,-1])
+        one_hot[i,ix] = 1.0
+    return one_hot,label
+
+
+def split_toutiao_to_train_test(test_size=0.01):
     from sklearn.model_selection import train_test_split
     data_x,data_y = turn_toutiao_to_numpy()
-    train_x,test_x,train_y,test_y = train_test_split(data_x,data_y,test_size=0.2)
+    # one-hot编码
+    data_y,label = make_one_hot(data_y)
+    train_x,test_x,train_y,test_y = train_test_split(data_x,data_y,test_size=test_size)
     print('Train x size:{},Train y size:{}'.format(train_x.shape,train_y.shape))
     print('Test x size:{},Test y size:{}'.format(test_x.shape,test_y.shape))
-    return train_x,train_y,test_x,test_y
+    return train_x,train_y,test_x,test_y,label

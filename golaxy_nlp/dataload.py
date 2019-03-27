@@ -97,7 +97,7 @@ def _seg_sentence(sentence):
     return outstr.strip().split(' ')
 
 def seg(sentence):
-    return ' '.join(_seg_sentence(sentence))
+    return _seg_sentence(sentence)
 
 def validation_data(tfidf=False,count = 0):
     FILE_NAME = './data/all_news.txt'
