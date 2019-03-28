@@ -63,24 +63,26 @@ class TextCNN(object):
         self.train_op = tf.train.AdamOptimizer(1e-4).minimize(self.loss)
 
 
-def main(batch_size = 32,train_epochs = 1000,dropout_prob=0.5):
+def main(batch_size = 32,train_epochs = 1000,dropout_prob=0.5,save_path='./model/toutiao/textcnn/'):
     # 读取词典
     vocab = read_vocab()
     vocab_size  = len(vocab)
     train_x,train_y,test_x,test_y,label=split_toutiao_to_train_test(test_size=0.05)
     num_classes = len(label)
     sequence_length = train_x.shape[-1]
-    # 利用Dataset生成batch数据
-    b_train_x = tf.data.Dataset.from_tensor_slices(train_x)
-    batch_tensor_train_x = b_train_x.batch(batch_size)
-    b_train_y = tf.data.Dataset.from_tensor_slices(train_y)
-    batch_tensor_train_y = b_train_y.batch(batch_size)
+
     # 构建TextCNN模型
     textcnn = TextCNN(sequence_length=sequence_length,num_classes=num_classes,vocab_size=vocab_size
-                      ,embedding_size=64,filter_sizes=[3,4,5],num_filters=64,l2_reg_lambda=0.0)
+                      ,embedding_size=64,filter_sizes=[3,4,5],num_filters=8,l2_reg_lambda=0.01)
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
+        saver = tf.train.Saver(max_to_keep=3)
         for epoch in range(1,1+train_epochs):
+            # 每次迭代均生成批量数据   利用Dataset生成batch数据
+            b_train_x = tf.data.Dataset.from_tensor_slices(train_x)
+            b_train_y = tf.data.Dataset.from_tensor_slices(train_y)
+            batch_tensor_train_x = b_train_x.batch(batch_size)
+            batch_tensor_train_y = b_train_y.batch(batch_size)
             train_x_iterator = batch_tensor_train_x.make_one_shot_iterator()
             train_y_iterator = batch_tensor_train_y.make_one_shot_iterator()
             go_batch = True
@@ -101,6 +103,7 @@ def main(batch_size = 32,train_epochs = 1000,dropout_prob=0.5):
                 except tf.errors.OutOfRangeError as e:
                     print('---------next epoch---------')
                     go_batch = False
+            saver.save(sess,save_path=save_path,global_step=epoch)
 
 if __name__ == '__main__':
     tf.app.run(main(batch_size=128))
