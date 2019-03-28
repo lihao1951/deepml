@@ -5,10 +5,6 @@
 @date 2019/3/26
 """
 import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import f1_score,precision_score,recall_score
 
 from dl_learn.utils import split_toutiao_to_train_test
 from dl_learn.utils import read_vocab
@@ -60,37 +56,39 @@ class TextCNN(object):
         with tf.name_scope('accuracy'):
             correct_predictions = tf.equal(self.predictions,tf.argmax(self.input_y,1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_predictions,"float"),name='accuracy')
-        self.train_op = tf.train.AdamOptimizer(1e-4).minimize(self.loss)
+        self.train_op = tf.train.AdamOptimizer(1e-3).minimize(self.loss)
 
 
-def main(batch_size = 32,train_epochs = 1000,dropout_prob=0.5,save_path='./model/toutiao/textcnn/'):
+def main(batch_size = 32,train_epochs = 1000,dropout_prob=0.5,save_path='../model/toutiao/textcnn/cnn.ckpt'):
     # 读取词典
     vocab = read_vocab()
     vocab_size  = len(vocab)
-    train_x,train_y,test_x,test_y,label=split_toutiao_to_train_test(test_size=0.05)
+    train_x, train_y, test_x, test_y, label = split_toutiao_to_train_test(test_size=0.02)
     num_classes = len(label)
+    train_rows = train_x.shape[0]
     sequence_length = train_x.shape[-1]
 
     # 构建TextCNN模型
     textcnn = TextCNN(sequence_length=sequence_length,num_classes=num_classes,vocab_size=vocab_size
-                      ,embedding_size=64,filter_sizes=[3,4,5],num_filters=8,l2_reg_lambda=0.01)
+                      ,embedding_size=64,filter_sizes=[3,4,5],num_filters=16,l2_reg_lambda=0.01)
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         saver = tf.train.Saver(max_to_keep=3)
         for epoch in range(1,1+train_epochs):
             # 每次迭代均生成批量数据   利用Dataset生成batch数据
-            b_train_x = tf.data.Dataset.from_tensor_slices(train_x)
-            b_train_y = tf.data.Dataset.from_tensor_slices(train_y)
-            batch_tensor_train_x = b_train_x.batch(batch_size)
-            batch_tensor_train_y = b_train_y.batch(batch_size)
-            train_x_iterator = batch_tensor_train_x.make_one_shot_iterator()
-            train_y_iterator = batch_tensor_train_y.make_one_shot_iterator()
+            if epoch>1:
+                train_x, train_y, test_x, test_y, label = split_toutiao_to_train_test(test_size=0.02)
+            step_start = 0
             go_batch = True
             all_steps = 1
             while go_batch:
-                try:
-                    x = sess.run(train_x_iterator.get_next())
-                    y = sess.run(train_y_iterator.get_next())
+                x = train_x[step_start:step_start+batch_size]
+                y = train_y[step_start:step_start+batch_size]
+                if x.shape[0] == 0:
+                    print('---------next epoch---------')
+                    go_batch = False
+                else:
+                    step_start += batch_size
                     _,train_loss,train_accuracy = sess.run([textcnn.train_op,textcnn.loss,textcnn.accuracy],
                                                            feed_dict={textcnn.input_x:x,textcnn.input_y:y,textcnn.dropout_keep_prob:dropout_prob})
                     if all_steps % 10 == 0:
@@ -100,9 +98,6 @@ def main(batch_size = 32,train_epochs = 1000,dropout_prob=0.5,save_path='./model
                         print('epoch:{},steps:{},train loss:{},train accuracy:{},test loss:{},test accuracy:{}'.format(epoch, all_steps, train_loss,
                                                                                                                      train_accuracy, test_loss,test_accuracy))
                     all_steps+=1
-                except tf.errors.OutOfRangeError as e:
-                    print('---------next epoch---------')
-                    go_batch = False
             saver.save(sess,save_path=save_path,global_step=epoch)
 
 if __name__ == '__main__':
