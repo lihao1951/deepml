@@ -15,8 +15,10 @@ import platform
 from golaxy_nlp.regex import is_num
 from golaxy_nlp.regex import remove_illegal_mark
 
+NEW_DICT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),'config','newdict.txt')
+
 # 加载自定义词典
-jieba.load_userdict('E:/work/golaxy_job/golaxy_job/python_job/pycharm/deepml/golaxy_nlp/config/newdict.txt')
+jieba.load_userdict(NEW_DICT_PATH)
 
 def get_key_word(sentence,topk=20,allowPOS = ['ns', 'n', 'vn','nr']):
     words = analyse.extract_tags(sentence,topk,allowPOS=allowPOS)
