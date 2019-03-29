@@ -51,8 +51,8 @@ def get_word_list(vocab,cont,topK=20):
             word_list.append(vocab[word])
         else:
             word_list.append(vocab['<pad>'])
-    if len(word_list) < 20:
-        for i in range(20 - len(word_list)):
+    if len(word_list) < topK:
+        for i in range(topK - len(word_list)):
             word_list.append(vocab['<pad>'])
     word_list = [str(w) for w in word_list]
     return word_list

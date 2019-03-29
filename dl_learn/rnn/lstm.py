@@ -9,14 +9,15 @@ Time 2018/12/5 17:26
 import os
 import sys
 import tensorflow as tf
-text_labels = {100:"news_story",101:"news_culture", \
-              102:"news_entertainment",103:"news_sports",\
-              104:"news_finance",105:"news_house",\
-              106:"news_house",107:"news_car",\
-              108:"news_edu",109:"news_tech",\
-              110:"news_military",112:"news_travel",\
-              113:"news_world",114:"stock",\
+news_labels_name_dict = {100:"news_story",101:"news_culture",
+              102:"news_entertainment",103:"news_sports",
+              104:"news_finance",106:"news_house",107:"news_car",
+              108:"news_edu",109:"news_tech",
+              110:"news_military",112:"news_travel",
+              113:"news_world",114:"stock",
               115:"news_agriculture",116:"news_game"}
+
+news_label_list = [100,101,102,103,104,106,107,108,109,110,112,113,114,115,116]
 
 def __get_toutiao_news():
     with open('./toutiao_cat_data.txt','r',encoding='utf-8') as fp:

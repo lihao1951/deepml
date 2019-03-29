@@ -7,6 +7,7 @@ Date 2019/03/28
 import tensorflow as tf
 import numpy as np
 from sklearn.metrics import classification_report
+from predict_news_hot.trans_text import get_word_list,read_vocab
 
 def load_saver(model_name):
     # 读取最后一个模型的名称路径
@@ -27,20 +28,34 @@ def get_tf_session(model_name):
     dropout_keep_prob = graph.get_operation_by_name('dropout_keep_prob').outputs[0]
     return sess,X_input,y_input,y_pre,dropout_keep_prob
 
-sess,X_input,y_input,y_pre,dropout_keep_prob = get_tf_session('../model/toutiao/textcnn/')
-from dl_learn.utils import split_toutiao_to_train_test
-trainx,trainy,testx,testy,label=split_toutiao_to_train_test(0.1)
-testy_pred = sess.run(y_pre,feed_dict={X_input:testx,y_input:testy,dropout_keep_prob:1.0})
-
 def change(a):
     pred = []
     for i in range(a.shape[0]):
         pred.append(int(np.argmax(a[i])))
     return pred
-a = change(testy)
-b = testy_pred.tolist()
-from dl_learn.rnn.lstm import text_labels
-print(classification_report(a,b,target_names=[text_labels[num] for num in label]))
+
+def classify(cont_list):
+    vocab = read_vocab()
+    from dl_learn.rnn.lstm import news_label_list, news_labels_name_dict
+    sess,X_input,y_input,y_pre,dropout_keep_prob = get_tf_session('../model/toutiao/textcnn/')
+    in_x = []
+    in_y = []
+    for cont in cont_list:
+        wordlist = [int(word) for word in get_word_list(vocab,cont,topK=15)]
+        in_x.append(wordlist)
+        in_y.append([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
+    testy_pred = sess.run(y_pre,feed_dict={X_input:np.array(in_x,dtype=np.int32),y_input:np.array(in_y,dtype=np.float32),dropout_keep_prob:1.0})
+    pred = np.squeeze(testy_pred).tolist()
+    for x in pred:print(news_labels_name_dict[news_label_list[x]])
+
+
+
+
+if __name__ == '__main__':
+    f = open('./test','r',encoding='utf-8')
+    cont_list = [line.strip() for line in f.readlines()]
+    classify(cont_list)
+
 
 
 
