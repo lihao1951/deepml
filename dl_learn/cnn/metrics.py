@@ -28,11 +28,13 @@ def get_tf_session(model_name):
     dropout_keep_prob = graph.get_operation_by_name('dropout_keep_prob').outputs[0]
     return sess,X_input,y_input,y_pre,dropout_keep_prob
 
+
 def change(a):
     pred = []
     for i in range(a.shape[0]):
         pred.append(int(np.argmax(a[i])))
     return pred
+
 
 def classify(cont_list):
     vocab = read_vocab()
@@ -46,16 +48,10 @@ def classify(cont_list):
         in_y.append([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
     testy_pred = sess.run(y_pre,feed_dict={X_input:np.array(in_x,dtype=np.int32),y_input:np.array(in_y,dtype=np.float32),dropout_keep_prob:1.0})
     pred = np.squeeze(testy_pred).tolist()
-    for x in pred:print(news_labels_name_dict[news_label_list[x]])
-
-
+    for num,x in enumerate(pred):print(num+1,'\t',news_labels_name_dict[news_label_list[x]])
 
 
 if __name__ == '__main__':
     f = open('./test','r',encoding='utf-8')
     cont_list = [line.strip() for line in f.readlines()]
     classify(cont_list)
-
-
-
-
