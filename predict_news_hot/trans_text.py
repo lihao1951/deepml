@@ -6,11 +6,13 @@
 """
 from golaxy_nlp.dataload import get_key_word
 import operator
-TRAIN = 'mini_train'
-VALID = 'mini_valid'
-TEST = 'mini_test'
 
 def make_vocab(filename):
+    """
+    制作词库
+    :param filename:
+    :return:
+    """
     vocab = {}
     with open(filename,'r',encoding='utf-8') as fin:
         line = fin.readline()
@@ -31,15 +33,16 @@ def make_vocab(filename):
 
 
 def read_vocab():
+    """
+    读取词库
+    :return:
+    """
     vocab = {}
     import os
     vocab_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'vocab')
     with open(vocab_path, 'r', encoding='utf-8') as fin:
         for num,word in enumerate(fin.readlines()):
             vocab[word.strip()] = num
-        vocab['<pad>'] = len(vocab)
-        vocab['<eos>'] = len(vocab)
-        vocab['<sos>'] = len(vocab)
     return vocab
 
 
@@ -50,35 +53,11 @@ def get_word_list(vocab,cont,topK=20):
         if word in vocab:
             word_list.append(vocab[word])
         else:
-            word_list.append(vocab['<pad>'])
+            # 未登录词补充unk标记
+            word_list.append(vocab['<unk>'])
     if len(word_list) < topK:
+        # 不满足长度的词汇补充pad标记
         for i in range(topK - len(word_list)):
             word_list.append(vocab['<pad>'])
     word_list = [str(w) for w in word_list]
     return word_list
-
-
-def change_2_id_list(filename):
-    vocab = read_vocab()
-    wout = open(filename+'_sig', 'a', encoding='utf-8')
-    with open(filename,'r',encoding='utf-8') as fin:
-        line = fin.readline()
-        while line:
-            tmp = line.strip().split('\t')
-            try:
-                cont = tmp[-1]
-                value = tmp[2]
-            except:
-                line = fin.readline()
-                continue
-            word_list = get_word_list(vocab,cont)
-            if float(value)>=0.7:
-                value = 2
-            elif float(value)>=0.3:
-                value = 1
-            else:
-                value = 0
-            wline = '{}-{}\n'.format(value,' '.join(word_list))
-            wout.write(wline)
-            line = fin.readline()
-    wout.close()

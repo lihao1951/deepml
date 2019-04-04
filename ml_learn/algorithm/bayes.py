@@ -7,7 +7,6 @@ Time 2018/11/2 16:17
 import os
 import sys
 import numpy as np
-from dataset.dataUtils import load_mnist
 from ml_learn.algorithm.base import Algorithm
 from sklearn.naive_bayes import GaussianNB
 
