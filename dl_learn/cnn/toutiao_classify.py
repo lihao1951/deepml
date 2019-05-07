@@ -59,7 +59,7 @@ class TextCNN(object):
         self.train_op = tf.train.AdamOptimizer(1e-3).minimize(self.loss)
 
 
-def main(batch_size = 32,train_epochs = 1000,dropout_prob=0.5,save_path='../model/toutiao/textcnn/cnn.ckpt'):
+def main(batch_size = 32,train_epochs = 100,dropout_prob=0.5,save_path='../model/toutiao/textcnn/cnn.ckpt'):
     # 读取词典
     vocab = read_vocab()
     vocab_size  = len(vocab)
@@ -70,14 +70,14 @@ def main(batch_size = 32,train_epochs = 1000,dropout_prob=0.5,save_path='../mode
 
     # 构建TextCNN模型
     textcnn = TextCNN(sequence_length=sequence_length,num_classes=num_classes,vocab_size=vocab_size
-                      ,embedding_size=64,filter_sizes=[3,4,5],num_filters=16,l2_reg_lambda=0.01)
+                      ,embedding_size=128,filter_sizes=[3,5,7],num_filters=64,l2_reg_lambda=0.01)
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver(max_to_keep=3)
+        saver = tf.train.Saver(max_to_keep=2)
         for epoch in range(1,1+train_epochs):
             # 每次迭代均生成批量数据   利用Dataset生成batch数据
-            if epoch>1:
-                train_x, train_y, test_x, test_y, label = split_toutiao_to_train_test(test_size=0.02)
+            # if epoch>1:
+            #     train_x, train_y, test_x, test_y, label = split_toutiao_to_train_test(test_size=0.02)
             step_start = 0
             go_batch = True
             all_steps = 1
@@ -91,7 +91,7 @@ def main(batch_size = 32,train_epochs = 1000,dropout_prob=0.5,save_path='../mode
                     step_start += batch_size
                     _,train_loss,train_accuracy = sess.run([textcnn.train_op,textcnn.loss,textcnn.accuracy],
                                                            feed_dict={textcnn.input_x:x,textcnn.input_y:y,textcnn.dropout_keep_prob:dropout_prob})
-                    if all_steps % 10 == 0:
+                    if all_steps % 50 == 0:
                         test_loss, test_accuracy = sess.run([textcnn.loss, textcnn.accuracy],
                                                                  feed_dict={textcnn.input_x: test_x, textcnn.input_y: test_y,
                                                                             textcnn.dropout_keep_prob: 1.0})
